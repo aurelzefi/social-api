@@ -2,23 +2,31 @@
 
 namespace App\Notifications;
 
+use App\Models\Comment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 
-class PostCommented extends Notification
+class PostCommented extends Notification implements ShouldQueue
 {
     use Queueable;
 
     /**
+     * The comment implementation.
+     *
+     * @var \App\Models\Comment
+     */
+    protected $comment;
+
+    /**
      * Create a new notification instance.
      *
+     * @param  \App\Models\Comment  $comment
      * @return void
      */
-    public function __construct()
+    public function __construct(Comment $comment)
     {
-        //
+        $this->comment = $comment;
     }
 
     /**
@@ -29,21 +37,7 @@ class PostCommented extends Notification
      */
     public function via($notifiable)
     {
-        return ['mail'];
-    }
-
-    /**
-     * Get the mail representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
-     */
-    public function toMail($notifiable)
-    {
-        return (new MailMessage)
-                    ->line('The introduction to the notification.')
-                    ->action('Notification Action', url('/'))
-                    ->line('Thank you for using our application!');
+        return ['broadcast', 'database'];
     }
 
     /**
@@ -54,8 +48,6 @@ class PostCommented extends Notification
      */
     public function toArray($notifiable)
     {
-        return [
-            //
-        ];
+        return $this->comment->toArray();
     }
 }
