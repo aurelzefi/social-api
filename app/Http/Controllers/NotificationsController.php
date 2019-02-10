@@ -7,78 +7,45 @@ class NotificationsController extends Controller
     /**
      * Display a listing of the notifications.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
-        return response()->json(
-            request()->user()->notifications
-        )
+        return response()->json(request()->user()->notifications);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Display the specified notification.
      *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param  string  $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
-        //
+        return response()->json(request()->user()->notifications()->find($id));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Read the notifications for the authenticated user.
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function edit($id)
+    public function read()
     {
-        //
+        request()->user()->unreadNotifications()->update(['read_at' => now()]);
+
+        return response()->json(request()->user()->notifications);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Unread the notifications for the authenticated user.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, $id)
+    public function unread()
     {
-        //
-    }
+        request()->user()->readNotifications()->update(['read_at' => null]);
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+        return response()->json(request()->user()->notifications);
     }
 }

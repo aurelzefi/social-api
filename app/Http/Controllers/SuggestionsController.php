@@ -15,8 +15,7 @@ class SuggestionsController extends Controller
     public function __invoke(User $users)
     {
         return response()->json(
-            $users
-                ->where('id', '<>', request()->user()->id)
+            $users->where('id', '<>', request()->user()->id)
                 ->whereIn('id', function ($query) {
                     $query->select('followee_id')
                         ->from('followings')

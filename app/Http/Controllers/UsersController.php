@@ -2,10 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\User;
 
 class UsersController extends Controller
 {
+    /**
+     * The user instance.
+     *
+     * @var \App\Models\User
+     */
+    protected $users;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param  \App\Models\User  $users
+     * @return void
+     */
+    public function __construct(User $users)
+    {
+        $this->users = $users;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -35,17 +53,18 @@ class UsersController extends Controller
      */
     public function show($id)
     {
-        //
+        return response()->json(
+            $this->users->withCount('posts', 'followers', 'followees')->findOrFail($id)
+        );
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update($id)
     {
         //
     }

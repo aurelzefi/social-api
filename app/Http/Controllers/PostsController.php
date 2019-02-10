@@ -3,17 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use Illuminate\Validation\Rule;
 use Illuminate\Contracts\Filesystem\Filesystem;
 
 class PostsController extends Controller
 {
-    /**
-     * The posts implementation.
-     *
-     * @var \App\Models\Post
-     */
-    protected $posts;
-
     /**
      * The filesystem instance.
      *
@@ -22,16 +16,23 @@ class PostsController extends Controller
     protected $files;
 
     /**
+     * The post instance.
+     *
+     * @var \App\Models\Post
+     */
+    protected $posts;
+
+    /**
      * Create a new controller instance.
      *
-     * @param  \App\Models\Post  $posts
      * @param  \Illuminate\Contracts\Filesystem\Filesystem  $files
+     * @param  \App\Models\Post  $posts
      * @return void
      */
-    public function __construct(Post $posts, Filesystem $files)
+    public function __construct(Filesystem $files, Post $posts)
     {
-        $this->posts = $posts;
         $this->files = $files;
+        $this->posts = $posts;
     }
 
     /**
@@ -54,16 +55,18 @@ class PostsController extends Controller
         request()->validate([
             'content' => 'required_without:files|nullable|string',
             'files' => 'array',
-            'files.*' => 'file',
+            'files.*' => 'mimes:jpeg,png,bmp,gif,mp4,mov,ogg',
         ]);
 
         $post = request()->user()->posts()->create([
             'content' => request('content'),
         ]);
 
-        if (request()->hasFile('files')) {
-            $post->files()->createMany($this->getUploadedFiles());
-        }
+        $this->storeFilesFor($post);
+
+        return response()->json(
+            $this->posts->with('user', 'files')->withCount('comments', 'likes')->find($post->id)
+        );
     }
 
     /**
@@ -81,25 +84,41 @@ class PostsController extends Controller
      * Update the specified post in storage.
      *
      * @param  int  $id
-     * @return void
+     * @return \Illuminate\Http\JsonResponse
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
     public function update($id)
     {
-        $post = $this->posts->findOrFail($id);
+        $post = $this->posts->with('files')->findOrFail($id);
 
         $this->authorize('update', $post);
 
         request()->validate([
-            'content' => 'required_without:files|nullable|string',
+            'content' => 'required_without_all:current_files,files|nullable|string',
+            'current_files' => 'array',
+            'current_files.*' => Rule::in($post->files->pluck('id')),
             'files' => 'array',
-            'files.*' => 'file',
+            'files.*' => 'mimes:jpeg,png,bmp,gif,mp4,mov,ogg',
         ]);
+
+        $ids = $post->files->pluck('id')->diff(request('current_files'));
+
+        $this->files->delete(
+            $post->files->whereIn('id', $ids)->pluck('name')->toArray()
+        );
+
+        $post->files()->whereIn('id', $ids)->delete();
+
+        $this->storeFilesFor($post);
 
         $post->fill([
             'content' => request('content'),
         ])->save();
+
+        return response()->json(
+            $this->posts->with('user', 'files')->withCount('comments', 'likes')->findOrFail($id)
+        );
     }
 
     /**
@@ -112,17 +131,24 @@ class PostsController extends Controller
      */
     public function destroy($id)
     {
-        $post = $this->posts->findOrFail($id);
+        $post = $this->posts->with('files', 'comments.files')->findOrFail($id);
 
         $this->authorize('delete', $post);
 
-        $post->delete();
-
-        $post->files()->delete();
+        $this->files->delete(
+            $post->files->pluck('name')->toArray()
+        );
 
         $this->files->delete(
-            $post->files()->pluck('name')->toArray()
+            $post->comments->pluck('files')->flatten()->pluck('name')->toArray()
         );
+
+        $post->delete();
+        $post->files()->delete();
+
+        $post->comments->each(function ($comment) {
+            $comment->files()->delete();
+        });
 
         return response()->json('', 204);
     }

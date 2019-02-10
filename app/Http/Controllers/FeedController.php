@@ -7,30 +7,24 @@ use App\Models\Post;
 class FeedController extends Controller
 {
     /**
-     * The post model instance.
-     *
-     * @var \App\Models\Post
-    */
-    protected $posts;
-
-    /**
-     * Create a new controller instance.
+     * Handle the incoming request.
      *
      * @param  \App\Models\Post  $posts
-     * @return void
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function __construct(Post $posts)
+    public function __invoke(Post $posts)
     {
-        $this->posts = $posts;
-    }
-
-    /**
-     * Display a listing of the feed posts.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
+        return response()->json(
+            $posts->with('user','files')
+                ->withCount('comments', 'likes')
+                ->where('user_id', request()->user()->id)
+                ->orWhereIn('user_id', function ($query) {
+                    $query->select('followee_id')
+                        ->from('followings')
+                        ->where('follower_id', request()->user()->id);
+                })
+                ->latest()
+                ->paginate(request('per_page'))
+        );
     }
 }

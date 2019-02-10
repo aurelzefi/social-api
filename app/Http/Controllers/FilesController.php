@@ -2,19 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Contracts\Filesystem\Filesystem;
-
 class FilesController extends Controller
 {
     /**
      * Handle the incoming request.
      *
-     * @param  \Illuminate\Contracts\Filesystem\Filesystem  $files
      * @param  string  $name
-     * @return \Illuminate\Http\Response
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
      */
-    public function __invoke(Filesystem $files, $name)
+    public function __invoke($name)
     {
-        return response()->file($files->get($name));
+        return response()->file(storage_path('app/'.$name));
     }
 }

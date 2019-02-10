@@ -2,62 +2,54 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use App\Notifications\UserFollowed;
 
 class FollowingsController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
+     * Follow the given user.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id)
+    public function follow($id)
     {
-        //
+        request()->merge(compact('id'))->validate([
+            'id' => [
+                'required',
+                'exists:users',
+                'not_in:'.request()->user()->id,
+                Rule::unique('followings', 'followee_id')
+                    ->where('follower_id', request()->user()->id),
+            ],
+        ]);
+
+        request()->user()->followees()->attach($id);
+
+        $followee = request()->user()->followees()->find($id);
+
+        $followee->notify(
+            new UserFollowed(request()->user())
+        );
+
+        return response()->json($followee);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Unfollow the given user.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, $id)
+    public function unfollow($id)
     {
-        //
-    }
+        request()->merge(compact('id'))->validate([
+            'id' => 'required|exists:users',
+        ]);
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+        request()->user()->followees()->detach($id);
+
+        return response()->json('', 204);
     }
 }

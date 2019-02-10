@@ -2,62 +2,53 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use App\Notifications\PostLiked;
 
 class LikesController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
+     * Like the specified post.
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function like($id)
     {
-        //
+        request()->merge(compact('id'))->validate([
+            'id' => [
+                'required',
+                'exists:posts',
+                Rule::unique('likes', 'post_id')
+                    ->where('user_id', request()->user()->id),
+            ],
+        ]);
+
+        request()->user()->likes()->attach($id);
+
+        $post = request()->user()->likes()->find($id);
+
+        if ($post->user->id !== request()->user()->id) {
+            $post->user->notify(new PostLiked(request()->user()));
+        }
+
+        return response()->json($post->makeHidden('user'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Unlike the specified post.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function unlike($id)
     {
-        //
-    }
+        request()->merge(compact('id'))->validate([
+            'id' => 'required|exists:posts',
+        ]);
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+        request()->user()->likes()->detach($id);
+
+        return response()->json('', 204);
     }
 }

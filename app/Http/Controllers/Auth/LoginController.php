@@ -2,38 +2,77 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Models\User;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 
 class LoginController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Login Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller handles authenticating users for the application and
-    | redirecting them to your home screen. The controller uses a trait
-    | to conveniently provide its functionality to your applications.
-    |
-    */
-
     use AuthenticatesUsers;
 
     /**
-     * Where to redirect users after login.
+     * The user instance.
      *
-     * @var string
+     * @var \App\Models\User
      */
-    protected $redirectTo = '/home';
+    protected $users;
 
     /**
      * Create a new controller instance.
      *
+     * @param  \App\Models\User  $users
      * @return void
      */
-    public function __construct()
+    public function __construct(User $users)
     {
-        $this->middleware('guest')->except('logout');
+        $this->users = $users;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function attemptLogin(Request $request)
+    {
+        return $this->guard()->once($this->credentials($request));
+    }
+
+    /**
+     * Send the response after the user was authenticated.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\User  $users
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function sendLoginResponse(Request $request)
+    {
+        $this->clearLoginAttempts($request);
+
+        $this->guard()->user()->fill(['api_token' => $token = str_random()])->save();
+
+        return response()->json(
+            $this->users->findForApiToken($token)->makeVisible('api_token')
+        );
+    }
+
+    /**
+     * Log the user out of the application.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function logout()
+    {
+        Auth::guard()->user()->fill(['api_token' => null])->save();
+
+        return response()->json('', 204);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function guard()
+    {
+        return Auth::guard('web');
     }
 }
