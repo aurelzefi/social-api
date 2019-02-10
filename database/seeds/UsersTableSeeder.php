@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use App\Notifications\UserFollowed;
 
 class UsersTableSeeder extends Seeder
 {
@@ -12,6 +13,15 @@ class UsersTableSeeder extends Seeder
      */
     public function run()
     {
-        factory(User::class, 10)->create();
+        factory(User::class, 30)->create()->each(function ($follower) {
+            for ($i = 0; $i < rand(1, 10); $i++) {
+                $followee = User::inRandomOrder()->first();
+
+                if (! $follower->hasFollowed($followee) && $follower->id !== $followee->id) {
+                    $followee->followers()->attach($follower);
+                    $followee->notify(new UserFollowed($follower));
+                }
+            }
+        });
     }
 }
