@@ -64,7 +64,6 @@ Route::middleware('auth:api')->group(function () {
 
     Route::prefix('messages')->group(function () {
         Route::post('/', 'MessagesController@store');
-        Route::get('{id}', 'MessagesController@show');
         Route::post('{id}/update', 'MessagesController@update');
         Route::delete('{id}', 'MessagesController@destroy');
     });
