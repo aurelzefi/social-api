@@ -57,17 +57,6 @@ class ConversationsController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
      * Display the last message with the given user.
      *
      * @param  int  $id
@@ -126,16 +115,5 @@ class ConversationsController extends Controller
                 ->oldest()
                 ->get()
         );
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
     }
 }

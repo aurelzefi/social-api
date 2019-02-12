@@ -34,8 +34,7 @@ Route::middleware('auth:api')->group(function () {
     });
 
     Route::prefix('users')->group(function () {
-        Route::get('/', 'UsersController@index');
-        Route::get('{id}', 'UsersController@show');
+        Route::get('{id}', 'UsersController');
 
         Route::get('{id}/posts', 'UserPostsController');
         Route::get('{id}/followers', 'UserFollowersController');

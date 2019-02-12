@@ -37,16 +37,6 @@ class MessagesController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
      * Store a newly created message in storage.
      *
      * @return \Illuminate\Http\JsonResponse

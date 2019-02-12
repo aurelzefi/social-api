@@ -72,32 +72,4 @@ class UserController extends Controller
             $this->users->findForApiToken(request()->bearerToken())
         );
     }
-
-    /**
-     * Remove the authenticated user from storage.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function destroy()
-    {
-        // records
-        // delete posts -> is done auto
-        // delete posts comments -> is done auto
-        // delete comments
-        // delete likes
-        // delete sent messages
-        // delete received messages
-        // delete followings
-        // delete notifications
-
-        // files
-        // delete avatar
-        // delete posts files
-        // delete posts comments files
-        // delete comments files
-        // delete sent messages files
-        // delete received messages files
-
-        return response()->json('', 204);
-    }
 }

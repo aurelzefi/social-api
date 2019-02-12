@@ -11,7 +11,7 @@ class LikesController extends Controller
      * Like the specified post.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function like($id)
     {
@@ -39,7 +39,7 @@ class LikesController extends Controller
      * Unlike the specified post.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function unlike($id)
     {

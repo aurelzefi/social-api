@@ -17,6 +17,8 @@ class File extends Model
 
     /**
      * Get all of the fileable models.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
      */
     public function commentable()
     {

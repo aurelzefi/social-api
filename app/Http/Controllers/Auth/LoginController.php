@@ -42,7 +42,6 @@ class LoginController extends Controller
      * Send the response after the user was authenticated.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\User  $users
      * @return \Illuminate\Http\JsonResponse
      */
     protected function sendLoginResponse(Request $request)
